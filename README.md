@@ -2,7 +2,8 @@
 
 <div align="center">
 
-![SmartCare Banner](docs/assets/banner.png)
+<img width="1024" height="800" alt="image" src="https://github.com/user-attachments/assets/8150b379-9879-4a99-8d2a-7d92937f76bc" />
+ 
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10+-green.svg)](https://python.org)
@@ -516,12 +517,10 @@ git push origin feature/AmazingFeature
 
 <div align="center">
 
-| <img src="https://github.com/KomalLaddha-dev.png" width="100"> |
-|:---:|
 | **Komal Laddha** |
-| Full Stack Developer |
-| [![GitHub](https://img.shields.io/badge/GitHub-KomalLaddha--dev-181717?logo=github)](https://github.com/KomalLaddha-dev) |
-
+| **Akshat Rabgotra** |
+| **Akshay Panpaliya** |
+| **Siddhant Rajgure** |
 </div>
 
 ---
