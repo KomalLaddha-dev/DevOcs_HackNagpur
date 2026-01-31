@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-color: #0077b6;
+  --secondary-color: #2a9d8f;
+  --background-color: #f8fafc;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--background-color);
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-healthcare-blue text-white px-6 py-3 rounded-lg font-semibold 
+           hover:bg-blue-700 transition-colors duration-200 
+           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  }
+
+  .btn-secondary {
+    @apply bg-healthcare-green text-white px-6 py-3 rounded-lg font-semibold 
+           hover:bg-teal-700 transition-colors duration-200;
+  }
+
+  .card {
+    @apply bg-white rounded-xl shadow-md p-6 border border-gray-100;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg 
+           focus:outline-none focus:ring-2 focus:ring-healthcare-blue focus:border-transparent
+           transition-all duration-200;
+  }
+
+  .severity-critical {
+    @apply bg-red-100 text-red-800 border-red-300;
+  }
+
+  .severity-urgent {
+    @apply bg-orange-100 text-orange-800 border-orange-300;
+  }
+
+  .severity-moderate {
+    @apply bg-yellow-100 text-yellow-800 border-yellow-300;
+  }
+
+  .severity-low {
+    @apply bg-green-100 text-green-800 border-green-300;
+  }
+
+  .severity-minimal {
+    @apply bg-blue-100 text-blue-800 border-blue-300;
+  }
+}
