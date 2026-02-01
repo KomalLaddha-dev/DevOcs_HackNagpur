@@ -4,8 +4,8 @@ import type { RootState } from '../store'
 import api from '../services/api'
 
 interface QueueEntry {
-  entry_id: string
-  patient_id: string
+  entry_id: number
+  patient_id: number
   patient_name: string
   age: number
   symptoms: string[]
@@ -27,12 +27,14 @@ interface QueueEntry {
 }
 
 interface QueueStats {
-  total_in_queue: number
-  average_wait_minutes: number
+  total_patients: number
+  avg_wait_minutes: number
   critical_count: number
-  high_count: number
-  medium_count: number
+  urgent_count: number
+  moderate_count: number
   low_count: number
+  minimal_count?: number
+  emergency_count: number
 }
 
 interface DepartmentStatus {
@@ -66,7 +68,7 @@ export default function DoctorDashboard() {
   const [selectedDepartment, setSelectedDepartment] = useState<string>('general')
   const [overrideReason, setOverrideReason] = useState('')
   const [showOverrideModal, setShowOverrideModal] = useState(false)
-  const [selectedPatientForOverride, setSelectedPatientForOverride] = useState<string | null>(null)
+  const [selectedPatientForOverride, setSelectedPatientForOverride] = useState<number | null>(null)
 
   const fetchCurrentPatient = useCallback(async () => {
     try {
@@ -152,8 +154,9 @@ export default function DoctorDashboard() {
       setShowOverrideModal(false)
       setOverrideReason('')
       setSelectedPatientForOverride(null)
-      fetchQueueData()
+      await fetchQueueData()
     } catch (err: any) {
+      console.error('Emergency override error:', err)
       setError(err.response?.data?.detail || err.message || 'Override failed')
     } finally {
       setActionLoading(false)
@@ -230,23 +233,23 @@ export default function DoctorDashboard() {
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-6">
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-primary-500">
             <p className="text-sm text-gray-600">In Queue</p>
-            <p className="text-2xl font-bold text-gray-900">{stats?.total_in_queue || 0}</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.total_patients || 0}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-blue-500">
             <p className="text-sm text-gray-600">Avg Wait</p>
-            <p className="text-2xl font-bold text-gray-900">{stats?.average_wait_minutes || 0}m</p>
+            <p className="text-2xl font-bold text-gray-900">{stats?.avg_wait_minutes?.toFixed(0) || 0}m</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-red-500">
             <p className="text-sm text-gray-600">Critical</p>
             <p className="text-2xl font-bold text-red-600">{stats?.critical_count || 0}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-orange-500">
-            <p className="text-sm text-gray-600">High</p>
-            <p className="text-2xl font-bold text-orange-600">{stats?.high_count || 0}</p>
+            <p className="text-sm text-gray-600">Urgent</p>
+            <p className="text-2xl font-bold text-orange-600">{stats?.urgent_count || 0}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-500">
-            <p className="text-sm text-gray-600">Medium</p>
-            <p className="text-2xl font-bold text-yellow-600">{stats?.medium_count || 0}</p>
+            <p className="text-sm text-gray-600">Moderate</p>
+            <p className="text-2xl font-bold text-yellow-600">{stats?.moderate_count || 0}</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-500">
             <p className="text-sm text-gray-600">Low</p>

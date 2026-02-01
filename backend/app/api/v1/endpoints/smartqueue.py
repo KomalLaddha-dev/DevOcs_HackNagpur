@@ -573,7 +573,91 @@ async def spare_logs(limit: int = 50):
 # EMERGENCY OVERRIDE
 # =============================================================================
 
+class SimpleEscalateRequest(BaseModel):
+    entry_id: int
+    new_severity: str = "CRITICAL"
+    reason: str
+    authorized_by: str = "doctor"
+
 @router.post("/emergency/escalate")
+async def emergency_escalate(request: SimpleEscalateRequest):
+    """Emergency escalate to top of queue - simplified API."""
+    pq = get_priority_queue()
+    activity_logger = get_activity_logger()
+    
+    # Find entry in queue using _entries dict
+    entry = pq._entries.get(request.entry_id)
+    
+    if not entry:
+        raise HTTPException(404, "Patient not found in queue")
+    
+    # Get patient info
+    patient_info = pq._patient_info.get(request.entry_id, {})
+    patient_name = patient_info.get("name", f"Patient #{entry.patient_id}")
+    department = patient_info.get("department", "general")
+    age = patient_info.get("age", 30)
+    chronic_conditions = patient_info.get("chronic_conditions", [])
+    
+    # Update to critical priority
+    old_score = entry.triage_score
+    entry.triage_score = 10  # Max score
+    entry.is_emergency = True
+    
+    # Update patient info severity
+    if request.entry_id in pq._patient_info:
+        pq._patient_info[request.entry_id]["severity"] = "CRITICAL"
+    
+    # Recalculate priority with emergency boost
+    now = datetime.utcnow()
+    wait_minutes = (now - entry.timestamp).total_seconds() / 60
+    wait_norm = min(1.0, wait_minutes / 120)
+    
+    severity_norm = entry.triage_score / 10.0
+    age_factor = 0.5  # Default mid factor
+    if age < 5 or age > 70:
+        age_factor = 0.8
+    chronic_factor = 0.3 if chronic_conditions else 0.0
+    
+    # Max priority calculation with emergency boost
+    new_priority = (
+        severity_norm * 0.4 +
+        wait_norm * 0.25 +
+        age_factor * 0.15 +
+        chronic_factor * 0.10 +
+        1.0 * 0.10  # Full emergency boost
+    ) + 10.0  # Massive emergency addition
+    
+    # Update the entry's priority in heap (using update_priority method pattern)
+    pq._entries[request.entry_id] = entry
+    
+    # Log the override (note: entry_id must be string for the method)
+    activity_logger.log_emergency_override(
+        patient_name=patient_name,
+        entry_id=str(entry.entry_id),
+        old_severity=str(old_score),
+        new_severity="10",
+        reason=request.reason,
+        authorized_by=request.authorized_by
+    )
+    
+    # Recalculate position based on new priority
+    queue_list = pq.get_queue_list()
+    new_position = 1
+    for item in queue_list:
+        if item["entry_id"] == entry.entry_id:
+            new_position = item["position"]
+            break
+    
+    return {
+        "success": True,
+        "message": f"Patient {patient_name} escalated to CRITICAL",
+        "new_position": new_position,
+        "new_priority": round(new_priority, 3),
+        "entry_id": entry.entry_id
+    }
+
+
+@router.post("/emergency/escalate-legacy")
 async def emergency_escalate(
     request: EmergencyRequest,
     auth_id: int = Query(...),

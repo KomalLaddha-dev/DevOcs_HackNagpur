@@ -335,29 +335,47 @@ class SmartPriorityQueue:
                 "urgent_count": 0,
                 "moderate_count": 0,
                 "low_count": 0,
+                "minimal_count": 0,
                 "emergency_count": 0
             }
         
         now = datetime.utcnow()
         total_wait = 0
-        severity_counts = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        critical_count = 0
+        urgent_count = 0
+        moderate_count = 0
+        low_count = 0
+        minimal_count = 0
         emergency_count = 0
         
         for item in self._entries.values():
             wait = (now - item.timestamp).total_seconds() / 60
             total_wait += wait
-            severity_counts[item.triage_score] = severity_counts.get(item.triage_score, 0) + 1
+            
+            # Count by severity level using 1-10 scale
+            score = item.triage_score
+            if score >= 9:
+                critical_count += 1
+            elif score >= 7:
+                urgent_count += 1
+            elif score >= 5:
+                moderate_count += 1
+            elif score >= 3:
+                low_count += 1
+            else:
+                minimal_count += 1
+                
             if item.is_emergency:
                 emergency_count += 1
         
         return {
             "total_patients": len(self._entries),
             "avg_wait_minutes": round(total_wait / len(self._entries), 1),
-            "critical_count": severity_counts.get(5, 0),
-            "urgent_count": severity_counts.get(4, 0),
-            "moderate_count": severity_counts.get(3, 0),
-            "low_count": severity_counts.get(2, 0),
-            "minimal_count": severity_counts.get(1, 0),
+            "critical_count": critical_count,
+            "urgent_count": urgent_count,
+            "moderate_count": moderate_count,
+            "low_count": low_count,
+            "minimal_count": minimal_count,
             "emergency_count": emergency_count
         }
 
