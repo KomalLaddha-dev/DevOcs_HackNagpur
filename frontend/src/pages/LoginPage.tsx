@@ -13,6 +13,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   
   const successMessage = location.state?.message
+  // Get the return path from location state (set by ProtectedRoute)
+  const from = location.state?.from?.pathname || '/'
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -51,7 +53,17 @@ export default function LoginPage() {
       }))
       localStorage.setItem('refresh_token', response.data.refresh_token)
       
-      navigate('/')
+      // Navigate to where user originally wanted to go, or home page
+      // Also redirect based on user role
+      if (from !== '/') {
+        navigate(from, { replace: true })
+      } else if (payload.role === 'admin') {
+        navigate('/admin', { replace: true })
+      } else if (payload.role === 'doctor') {
+        navigate('/doctor', { replace: true })
+      } else {
+        navigate('/', { replace: true })
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
     } finally {
