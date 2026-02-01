@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { RootState } from '../store'
 import { 
   Activity, 
   Clock, 
@@ -7,10 +9,11 @@ import {
   Video, 
   BarChart3,
   ArrowRight,
-  CheckCircle
+  LogIn
 } from 'lucide-react'
 
 export default function HomePage() {
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth)
   const features = [
     {
       icon: Brain,
@@ -59,10 +62,17 @@ export default function HomePage() {
                 Reduce wait times, improve outcomes, and enhance the healthcare experience.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to="/checkin" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center justify-center">
-                  Start Check-In
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
+                {isAuthenticated ? (
+                  <Link to="/checkin" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center justify-center">
+                    Start Check-In
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Link>
+                ) : (
+                  <Link to="/login" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center justify-center">
+                    Login to Check-In
+                    <LogIn className="ml-2 h-5 w-5" />
+                  </Link>
+                )}
                 <Link to="/queue" className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/10 transition-colors inline-flex items-center justify-center">
                   View Queue Status
                 </Link>
@@ -172,10 +182,17 @@ export default function HomePage() {
           <p className="text-blue-100 mb-8">
             Join thousands of patients who enjoy reduced wait times and better care.
           </p>
-          <Link to="/checkin" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
-            Start Your Check-In Now
-            <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/checkin" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
+              Start Your Check-In Now
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          ) : (
+            <Link to="/login" className="bg-white text-healthcare-blue px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors inline-flex items-center">
+              Login to Get Started
+              <LogIn className="ml-2 h-5 w-5" />
+            </Link>
+          )}
         </div>
       </section>
     </div>

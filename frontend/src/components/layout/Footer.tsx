@@ -1,6 +1,11 @@
 import { Activity, Github, Mail, Phone } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { RootState } from '../../store'
 
 export default function Footer() {
+  const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
+
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -21,10 +26,18 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="/checkin" className="hover:text-white transition-colors">Patient Check-In</a></li>
-              <li><a href="/queue" className="hover:text-white transition-colors">Queue Status</a></li>
-              <li><a href="/doctor" className="hover:text-white transition-colors">Doctor Portal</a></li>
-              <li><a href="/admin" className="hover:text-white transition-colors">Admin Dashboard</a></li>
+              {isAuthenticated ? (
+                <li><Link to="/checkin" className="hover:text-white transition-colors">Patient Check-In</Link></li>
+              ) : (
+                <li><Link to="/login" className="hover:text-white transition-colors">Login to Check-In</Link></li>
+              )}
+              <li><Link to="/queue" className="hover:text-white transition-colors">Queue Status</Link></li>
+              {isAuthenticated && (user?.role === 'doctor' || user?.role === 'admin') && (
+                <li><Link to="/doctor" className="hover:text-white transition-colors">Doctor Portal</Link></li>
+              )}
+              {isAuthenticated && user?.role === 'admin' && (
+                <li><Link to="/admin" className="hover:text-white transition-colors">Admin Dashboard</Link></li>
+              )}
             </ul>
           </div>
 
