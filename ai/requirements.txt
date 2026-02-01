@@ -1,0 +1,27 @@
+# SmartCare AI/ML Dependencies
+
+# Core ML
+scikit-learn==1.4.0
+numpy==1.26.3
+pandas==2.1.4
+scipy==1.12.0
+
+# NLP
+nltk==3.8.1
+spacy==3.7.2
+
+# Model Persistence
+joblib==1.3.2
+
+# Data Processing
+regex==2023.12.25
+
+# Visualization (for model analysis)
+matplotlib==3.8.2
+seaborn==0.13.1
+
+# Model Explainability
+shap==0.44.0
+
+# Testing
+pytest==7.4.4
