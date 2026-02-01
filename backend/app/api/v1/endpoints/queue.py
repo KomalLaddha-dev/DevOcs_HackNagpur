@@ -1,68 +1,75 @@
 """
-Queue Management Endpoints
+Patient Endpoints
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, WebSocket
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 
 from app.db.session import get_db
-from app.schemas.queue import QueueEntry, QueueStatus, CheckInRequest
-from app.services.queue_service import QueueService
-from app.api.deps import get_current_user, get_current_admin
+from app.schemas.patient import PatientCreate, PatientResponse, PatientUpdate, SymptomSubmission
+from app.services.patient_service import PatientService
+from app.api.deps import get_current_patient
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[QueueEntry])
-async def get_queue(db: Session = Depends(get_db)):
-    """Get current queue status (public view)."""
-    queue_service = QueueService(db)
-    return await queue_service.get_queue()
-
-
-@router.post("/checkin", response_model=QueueEntry)
-async def check_in(
-    checkin_data: CheckInRequest,
+@router.get("/me", response_model=PatientResponse)
+async def get_current_patient_profile(
+    current_patient = Depends(get_current_patient),
     db: Session = Depends(get_db)
 ):
-    """Patient check-in to the queue."""
-    queue_service = QueueService(db)
-    return await queue_service.check_in(checkin_data)
+    """Get current patient's profile."""
+    return current_patient
 
 
-@router.get("/position/{patient_id}", response_model=QueueStatus)
-async def get_queue_position(patient_id: int, db: Session = Depends(get_db)):
-    """Get specific patient's queue position."""
-    queue_service = QueueService(db)
-    return await queue_service.get_position(patient_id)
-
-
-@router.post("/emergency", response_model=QueueEntry)
-async def emergency_override(
-    patient_id: int,
-    reason: str,
-    current_admin = Depends(get_current_admin),
+@router.put("/me", response_model=PatientResponse)
+async def update_patient_profile(
+    patient_data: PatientUpdate,
+    current_patient = Depends(get_current_patient),
     db: Session = Depends(get_db)
 ):
-    """Emergency override - move patient to front of queue."""
-    queue_service = QueueService(db)
-    return await queue_service.emergency_override(patient_id, reason)
+    """Update current patient's profile."""
+    patient_service = PatientService(db)
+    return await patient_service.update(current_patient.id, patient_data)
 
 
-@router.post("/call-next")
-async def call_next_patient(
-    doctor_id: int,
+@router.post("/symptoms", response_model=dict)
+async def submit_symptoms(
+    symptoms: SymptomSubmission,
+    current_patient = Depends(get_current_patient),
     db: Session = Depends(get_db)
 ):
-    """Call the next patient in queue for a specific doctor."""
-    queue_service = QueueService(db)
-    return await queue_service.call_next(doctor_id)
+    """Submit symptoms for AI triage assessment."""
+    patient_service = PatientService(db)
+    return await patient_service.submit_symptoms(current_patient.id, symptoms)
 
 
-@router.websocket("/ws")
-async def queue_websocket(websocket: WebSocket, db: Session = Depends(get_db)):
-    """WebSocket for real-time queue updates."""
-    await websocket.accept()
-    queue_service = QueueService(db)
-    await queue_service.subscribe_to_updates(websocket)
+@router.get("/queue-status")
+async def get_queue_status(
+    current_patient = Depends(get_current_patient),
+    db: Session = Depends(get_db)
+):
+    """Get current patient's position in queue."""
+    patient_service = PatientService(db)
+    return await patient_service.get_queue_status(current_patient.id)
+
+
+@router.get("/appointments", response_model=List[dict])
+async def get_patient_appointments(
+    current_patient = Depends(get_current_patient),
+    db: Session = Depends(get_db)
+):
+    """Get patient's appointment history."""
+    patient_service = PatientService(db)
+    return await patient_service.get_appointments(current_patient.id)
+
+
+@router.get("/health-records")
+async def get_health_records(
+    current_patient = Depends(get_current_patient),
+    db: Session = Depends(get_db)
+):
+    """Get patient's digital health records."""
+    patient_service = PatientService(db)
+    return await patient_service.get_health_records(current_patient.id)
